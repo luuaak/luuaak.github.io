@@ -28,7 +28,10 @@ jobs:
         run: cargo install dioxus-cli  # ติดตั้ง Dioxus CLI
 
       - name: Install dependencies
-        run: npm install  # ติดตั้ง dependencies ทั้งหมดรวมถึง DaisyUI
+        run: npm i  # ติดตั้ง dependencies ทั้งหมดรวมถึง DaisyUI
+
+      - name: Install daisyUI, a plugin for Tailwind CSS
+        run: npm i -D daisyui@latest
 
       - name: Compile TailwindCSS
         run: npx tailwindcss -i ./input.css -o ./public/tailwind.css --watch  # คอมไพล์ CSS
