@@ -46,19 +46,24 @@ jobs:
         run: ls -al ./dist
 
       - name: Upload artifact for deployment
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
+          name: github-pages
           path: ./dist
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build  # รันหลังจาก build สำเร็จ
+    needs: build
     permissions:
       pages: write
       id-token: write
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Download build artifact
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: github-pages
+
+      - name: Deploy GitHub Pages site
+        uses: actions/deploy-pages@v4.0.5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
