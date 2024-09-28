@@ -42,6 +42,9 @@ jobs:
       - name: Build Dioxus project
         run: npm run build
 
+      - name: Verify build output
+        run: ls -al ./dist
+
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v3  # เก็บผลลัพธ์การ build ไว้ใน artifact
         with:
