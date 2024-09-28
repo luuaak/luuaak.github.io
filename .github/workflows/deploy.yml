@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Build and Deploy Dioxus + TailwindCSS + DaisyUI
 
 on:
   push:
@@ -11,12 +11,16 @@ jobs:
 
     steps:
       - name: Checkout repository content
-        uses: actions/checkout@v2  # ดึงโค้ดจาก repository
+        uses: actions/checkout@v4  # ดึงโค้ดจาก repository
+
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v3  # ตั้งค่า GitHub Pages
 
       - name: Install Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '20'  # ติดตั้ง Node.js เวอร์ชัน 20
+          node-version: '20'
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -36,20 +40,22 @@ jobs:
       - name: Compile TailwindCSS
         run: npx tailwindcss -i ./input.css -o ./public/tailwind.css
 
-      - name: Verify TailwindCSS output
-        run: ls -l ./public/tailwind.css  # ตรวจสอบว่าไฟล์ CSS มีอยู่จริงหรือไม่
-
       - name: Build Dioxus project
         run: npm run build
 
       - name: Verify build output
         run: ls -al ./dist
 
-      - name: Upload artifact for deployment
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./dist       # ใช้โฟลเดอร์ dist เป็นแหล่งข้อมูลสำหรับ Jekyll
+          destination: ./_site  # Output จะไปที่โฟลเดอร์ _site
+
+      - name: Upload Pages artifact
         uses: actions/upload-artifact@v4
         with:
-          name: github-pages
-          path: ./dist
+          path: ./_site  # อัปโหลดโฟลเดอร์ _site เพื่อใช้กับ GitHub Pages
 
   deploy:
     environment:
@@ -57,19 +63,9 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
-    permissions:
-      pages: write
-      id-token: write
-
     steps:
-
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: github-pages
-
-      - name: Deploy with Jekyll Build Pages
-        uses: actions/jekyll-build-pages@v1.0.12
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4.0.5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-
