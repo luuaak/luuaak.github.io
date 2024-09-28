@@ -46,27 +46,19 @@ jobs:
         run: ls -al ./dist
 
       - name: Upload artifact for deployment
-        uses: actions/upload-artifact@v3  # เก็บผลลัพธ์การ build ไว้ใน artifact
+        uses: actions/upload-pages-artifact@v1
         with:
-          name: github-pages
           path: ./dist
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build  # job นี้จะรันหลังจาก build สำเร็จ
+    needs: build  # รันหลังจาก build สำเร็จ
     permissions:
       pages: write
-      id-token: write  # กำหนดสิทธิ์สำหรับการเขียน ID token
+      id-token: write
     steps:
-      - name: Checkout repository content
-        uses: actions/checkout@v2
-
-      - name: Download build artifact
-        uses: actions/download-artifact@v3  # ดาวน์โหลด artifact ที่บิลด์เสร็จแล้ว
-        with:
-          name: github-pages  # ใช้ชื่อ artifact เดียวกับที่อัปโหลด
-
-      - name: Deploy GitHub Pages site
-        uses: actions/deploy-pages@v4.0.5
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
