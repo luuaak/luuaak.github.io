@@ -1,4 +1,4 @@
-name: Build and Deploy Dioxus + TailwindCSS + DaisyUI
+name: Build and Deploy
 
 on:
   push:
@@ -11,11 +11,7 @@ jobs:
 
     steps:
       - name: Checkout repository content
-        uses: actions/checkout@v4  # ดึงโค้ดจาก repository
-
-      - name: Setup Pages
-        id: pages
-        uses: actions/configure-pages@v3  # ตั้งค่า GitHub Pages
+        uses: actions/checkout@v2  # ดึงโค้ดจาก repository
 
       - name: Install Node.js
         uses: actions/setup-node@v2
@@ -40,36 +36,40 @@ jobs:
       - name: Compile TailwindCSS
         run: npx tailwindcss -i ./input.css -o ./public/tailwind.css
 
+      - name: Verify TailwindCSS output
+        run: ls -l ./public/tailwind.css  # ตรวจสอบว่าไฟล์ CSS มีอยู่จริงหรือไม่
+
       - name: Build Dioxus project
         run: npm run build
 
       - name: Verify build output
         run: ls -al ./dist
 
-      - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@v1
-        with:
-          source: ./dist
-          destination: ./_site
-
-      - name: Upload Pages artifact
+      - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
-          path: ./_site
+          name: github-pages
+          path: ./dist
 
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
     permissions:
       pages: write
       id-token: write
 
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+
+      - name: Deploy GitHub Pages site
         uses: actions/deploy-pages@v4.0.5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
