@@ -36,8 +36,12 @@ jobs:
       - name: Compile TailwindCSS
         run: npx tailwindcss -i ./input.css -o ./public/tailwind.css --watch  # คอมไพล์ CSS
 
+      - name: Verify TailwindCSS output
+        run: ls -l ./public/tailwind.css  # ตรวจสอบว่าไฟล์ CSS ถูกสร้างแล้วหรือไม่
+
       - name: Build Dioxus project
         run: npm run web  # รันคำสั่ง build ของ Dioxus
+
 
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v3  # เก็บผลลัพธ์การ build ไว้ใน artifact
