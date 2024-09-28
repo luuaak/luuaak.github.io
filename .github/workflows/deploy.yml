@@ -40,8 +40,14 @@ jobs:
         run: ls -l ./public/tailwind.css  # ตรวจสอบว่าไฟล์ CSS มีอยู่จริงหรือไม่
 
       - name: Build Dioxus project
-        run: npm run web
+        run: npm run web &  # รันเซิร์ฟเวอร์ใน background
+        id: dioxus_server  # ให้ ID เพื่อใช้ในการอ้างอิง
 
+      - name: Wait for Dioxus to start
+        run: sleep 10  # รอให้เซิร์ฟเวอร์ Dioxus เริ่มต้น
+
+      - name: Kill Dioxus server
+        run: kill $(jobs -p)  # หยุดเซิร์ฟเวอร์ Dioxus ที่รันใน background
 
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v3  # เก็บผลลัพธ์การ build ไว้ใน artifact
