@@ -49,13 +49,13 @@ jobs:
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
-          source: ./dist       # ใช้โฟลเดอร์ dist เป็นแหล่งข้อมูลสำหรับ Jekyll
-          destination: ./_site  # Output จะไปที่โฟลเดอร์ _site
+          source: ./dist
+          destination: ./_site
 
       - name: Upload Pages artifact
         uses: actions/upload-artifact@v4
         with:
-          path: ./_site  # อัปโหลดโฟลเดอร์ _site เพื่อใช้กับ GitHub Pages
+          path: ./_site
 
   deploy:
     environment:
