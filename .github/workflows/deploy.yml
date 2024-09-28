@@ -45,7 +45,7 @@ jobs:
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v3  # เก็บผลลัพธ์การ build ไว้ใน artifact
         with:
-          name: build-output
+          name: static-webpage
           path: ./dist
 
   deploy:
@@ -61,7 +61,7 @@ jobs:
       - name: Download build artifact
         uses: actions/download-artifact@v3  # ดาวน์โหลด artifact ที่บิลด์เสร็จแล้ว
         with:
-          name: github-pages  # ใช้ชื่อ artifact เดียวกับที่อัปโหลด
+          name: static-webpage  # ใช้ชื่อ artifact เดียวกับที่อัปโหลด
 
       - name: Deploy GitHub Pages site
         uses: actions/deploy-pages@v4.0.5
