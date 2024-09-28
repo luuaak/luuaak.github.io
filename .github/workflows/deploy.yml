@@ -1,0 +1,60 @@
+name: Build and Deploy Dioxus + TailwindCSS + DaisyUI
+
+on:
+  push:
+    branches:
+      - main  # เรียกใช้ workflow เมื่อมีการ push ไปที่ branch main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository content
+        uses: actions/checkout@v2  # ดึงโค้ดจาก repository
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'  # ติดตั้ง Node.js เวอร์ชัน 20
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable  # ติดตั้ง Rust เวอร์ชันล่าสุด (stable)
+          override: true
+
+      - name: Install Dioxus CLI
+        run: cargo install dioxus-cli  # ติดตั้ง Dioxus CLI
+
+      - name: Install dependencies
+        run: npm install  # ติดตั้ง dependencies ทั้งหมดรวมถึง DaisyUI
+
+      - name: Compile TailwindCSS
+        run: npx tailwindcss -i ./input.css -o ./public/tailwind.css --watch  # คอมไพล์ CSS
+
+      - name: Build Dioxus project
+        run: npm run web  # รันคำสั่ง build ของ Dioxus
+
+      - name: Upload artifact for deployment
+        uses: actions/upload-artifact@v3  # เก็บผลลัพธ์การ build ไว้ใน artifact
+        with:
+          name: build-output
+          path: ./dist  # ไดเรกทอรีที่บิลด์แล้ว
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build  # job นี้จะรันหลังจาก build สำเร็จ
+    steps:
+      - name: Checkout repository content
+        uses: actions/checkout@v2  # ดึงโค้ดจาก repository
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v3  # ดาวน์โหลด artifact ที่บิลด์เสร็จแล้ว
+        with:
+          name: build-output
+
+      - name: Deploy GitHub Pages site
+        uses: actions/deploy-pages@v4.0.5  # ใช้ GitHub Action ในการ deploy
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}  # ใช้ token สำหรับการอนุญาตการ deploy
