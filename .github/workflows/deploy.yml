@@ -2,21 +2,26 @@ name: Build and Deploy
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [ 18.x, 20.x, 22.x ]
 
     steps:
       - name: Checkout repository content
         uses: actions/checkout@v4
 
       - name: Install Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ matrix.node-version }}
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -45,10 +50,9 @@ jobs:
       - name: Verify build output
         run: ls -al ./dist
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v1  # ใช้ action สำหรับอัปโหลด artifact ที่เหมาะสม
         with:
-          name: github-pages
           path: ./dist
 
   deploy:
@@ -60,12 +64,11 @@ jobs:
       id-token: write
 
     steps:
-
       - name: Checkout repository content
         uses: actions/checkout@v4
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-pages-artifact@v1  # ใช้ action สำหรับดาวน์โหลด artifact ที่เหมาะสม
         with:
           name: github-pages
 
