@@ -69,3 +69,4 @@ jobs:
         uses: actions/deploy-pages@v4.0.5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          artifact_name: 'github-pages'
