@@ -33,7 +33,7 @@ jobs:
       - name: Install daisyUI
         run: npm i -D daisyui@latest
 
-      - name: Compile TailwindCSS
+      - name: Install TailwindCSS
         run: npx tailwindcss -i ./input.css -o ./public/tailwind.css
 
       - name: Verify TailwindCSS output
