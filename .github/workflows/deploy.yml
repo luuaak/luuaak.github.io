@@ -50,9 +50,10 @@ jobs:
       - name: Verify build output
         run: ls -al ./dist
 
-      - name: Upload Artifact
-        uses: actions/upload-pages-artifact@v1  # ใช้ action สำหรับอัปโหลด artifact ที่เหมาะสม
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
+          name: github-pages
           path: ./dist
 
   deploy:
@@ -62,13 +63,17 @@ jobs:
       contents: read
       pages: write
       id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+
       - name: Checkout repository content
         uses: actions/checkout@v4
 
       - name: Download artifact
-        uses: actions/download-pages-artifact@v1  # ใช้ action สำหรับดาวน์โหลด artifact ที่เหมาะสม
+        uses: actions/download-artifact@v4
         with:
           name: github-pages
 
