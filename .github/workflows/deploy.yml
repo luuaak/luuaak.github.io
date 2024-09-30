@@ -61,7 +61,7 @@ jobs:
 
     environment:
       name: github-pages
-      url: ${{steps.deployment.outputs.url_html}}
+      url: ${{steps.deployment.outputs.page_url}}
 
     steps:
       - name: Checkout repository content
@@ -71,7 +71,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: github-pages
-          path: ./dist
+          path: ./dist/index.html
 
       - name: Deploy GitHub Pages site
         uses: actions/deploy-pages@v4.0.5
