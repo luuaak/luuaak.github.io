@@ -71,7 +71,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: github-pages
-          path: ./github-pages
+          path: ./github-pages/index.html
 
 
       - name: Deploy GitHub Pages site
