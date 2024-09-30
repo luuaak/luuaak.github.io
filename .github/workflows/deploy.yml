@@ -60,7 +60,6 @@ jobs:
       id-token: write
 
     steps:
-
       - name: Checkout repository content
         uses: actions/checkout@v4
 
@@ -68,9 +67,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: github-pages
+          path: ./dist
 
       - name: Deploy GitHub Pages site
         uses: actions/deploy-pages@v4.0.5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           artifact_name: 'github-pages'
+          folder: './dist'
