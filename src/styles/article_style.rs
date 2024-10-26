@@ -92,7 +92,6 @@ pub const STYLE: &str = r#"
     overflow: hidden;          /* ซ่อนข้อความที่เกินขอบเขต */
     text-overflow: ellipsis;   /* แสดงจุดสามจุดเมื่อข้อความเกินขอบเขต */
     max-width: 100%;           /* กำหนดขอบเขตความกว้างสูงสุด */
-    display: inline-block;     /* ปรับให้ทำงานกับ max-width ได้ */
 }
 
 .markdown-field-text a:hover {
