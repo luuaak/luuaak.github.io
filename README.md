@@ -17,7 +17,7 @@ npm i -D daisyui@latest
 4. Run the following command in the root of the project to start the tailwind CSS compiler:
 
 ```bash
-npx tailwindcss -i ./input.css -o ./public/tailwind.css --watch
+npx tailwindcss -i ./input.css -o ./public/tailwind.css
 ```
 
 5. Run the following command in the root of the project to start the Dioxus dev server:

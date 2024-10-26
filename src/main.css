@@ -1,6 +1,7 @@
+@import url("https://fonts.googleapis.com/css?family=Poppins");
 
 body {
-    background-color: #F4F4F4;
-    font-family: "JetBrains Mono";
-    overflow-x: hidden;
+    margin: 0px;
+    background-color: #1a1f32;
+    font-family: 'Poppins';
 }
