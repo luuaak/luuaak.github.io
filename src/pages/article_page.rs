@@ -7,13 +7,7 @@ use crate::components::{NavigationBar, SearchBar};
 use crate::components::content::{Article, ArticleAuthor};
 use crate::model::SessionStorage;
 use dioxus_logger::tracing::info;
-use nostr_sdk::{
-    EventId,
-    EventSource,
-    Metadata,
-    Filter,
-    Kind
-};
+use nostr_sdk::{EventId, EventSource, Metadata, Filter, Kind, PublicKey, ToBech32};
 use crate::components::anim::EllipsisLoading;
 use crate::components::story::{
     check_image,
@@ -57,6 +51,7 @@ pub fn ArticlePage(event_id: String) -> Element {
     let mut summary: String = String::new();
     let mut article: String = String::new();
     let mut published_at: String = String::new();
+    let mut npub: String = String::new();
     let mut author_name: String = String::new();
     let mut author_image: String = String::new();
 
@@ -86,6 +81,7 @@ pub fn ArticlePage(event_id: String) -> Element {
                         summary: Some(story.summary.clone()),
                         article: Some(story.article.clone()),
                         published_at: Some(story.published_at.clone()),
+                        npub: Some(story.npub.clone()),
                         author_name: Some(story.author_name.clone()),
                         author_image: Some(story.author_image.clone()),
                     };
@@ -127,6 +123,7 @@ pub fn ArticlePage(event_id: String) -> Element {
                             )
                             .await;
 
+                        //let npub = PublicKey::to_bech32(&event.pubkey);
                         let mut author_name = None;
                         let mut author_image = None;
 
@@ -173,6 +170,7 @@ pub fn ArticlePage(event_id: String) -> Element {
         summary = story_data.summary.clone().unwrap_or_default();
         article = story_data.article.clone().unwrap_or_default();
         published_at = story_data.published_at.clone().unwrap_or_default();
+        npub = story_data.npub.clone().unwrap_or_default();
         author_name = story_data.author_name.clone().unwrap_or_default();
         author_image = story_data.author_image.clone().unwrap_or_default();
     }
@@ -202,6 +200,7 @@ pub fn ArticlePage(event_id: String) -> Element {
                     }
                     div { class: "col-lg-4 col-sm-4",
                         ArticleAuthor {
+                            npub: npub,
                             author_name: author_name,
                             author_image: author_image
                         }

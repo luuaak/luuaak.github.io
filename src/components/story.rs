@@ -13,7 +13,7 @@ use nostr_sdk::{
     Kind,
     Metadata,
     PublicKey,
-    EventId
+    EventId,
 };
 use std::time::Duration;
 use nostr_sdk::prelude::{Nip19, Nip19Event, PREFIX_BECH32_NOTE_ID};
@@ -43,6 +43,7 @@ pub struct StoryData {
     pub(crate) summary: Option<String>,      // สรุปของ note
     pub(crate) article: Option<String>,      // เนื้อหาบทความ
     pub(crate) published_at: Option<String>, // เวลาที่เผยแพร่
+    pub(crate) npub: Option<String>,
     pub(crate) author_name: Option<String>,  // ชื่อผู้เขียน
     pub(crate) author_image: Option<String>, // รูปภาพผู้เขียน
 }
@@ -104,12 +105,13 @@ pub async fn extract_tags(
     let mut published_at: Option<String> = None; // ตัวแปรเก็บค่า published_at
     let note_id = Some(event.id.to_hex()); // แปลง id ของ event เป็นรูปแบบ hex และเก็บใน note_id
     let article = Some(event.content.clone());
+    let npub = PublicKey::to_bech32(&event.pubkey).unwrap().into();
     //info!("event: {:#?}", event);
 
     // วนซ้ำเพื่อตรวจสอบ tags ภายใน event
     for tag in event.tags.iter() {
         let tag_data = tag.as_slice(); // แปลง tag เป็นรูปแบบเวกเตอร์
-                                       // ตรวจสอบว่ามีข้อมูลใน tag และเป็น tag ที่เราต้องการหรือไม่
+        // ตรวจสอบว่ามีข้อมูลใน tag และเป็น tag ที่เราต้องการหรือไม่
         if tag_data.len() > 1 && tags_to_find.contains(&tag_data[0].as_str()) {
             match tag_data[0].as_str() {
                 "image" => {
@@ -138,6 +140,7 @@ pub async fn extract_tags(
         summary,
         article,
         published_at,
+        npub,
         author_name,
         author_image,
     }
@@ -147,7 +150,7 @@ pub async fn extract_tags(
 /// เป็น component ที่ทำหน้าที่ดึงข้อมูล NIP-23 (Long-form Content) จากเครือข่าย Nostr
 /// และแสดงผลออกมาเป็นรายการของ story โดยใช้ `StoryCard` component
 #[component]
-pub fn Story() -> Element {
+pub fn Story(npub_value: Option<String>) -> Element {
 
     // สร้าง signal เพื่อเก็บ events ที่ได้จากการดึงข้อมูล
     let events_signal: Signal<Vec<Event>> = use_signal(Vec::new);
@@ -158,24 +161,39 @@ pub fn Story() -> Element {
     use_future({
         // clone ตัวแปร signal ที่สร้างขึ้นเพื่อใช้ใน future
         let mut events_signal = events_signal.clone();
-
-        // clone ตัวแปร signal เพื่อเก็บ story data
         let mut story_data_signal = story_data_signal.clone();
 
         // ฟังก์ชัน async ที่ดึงข้อมูล events จาก Nostr
-        move || async move {
+        move || {
+        let value = npub_value.clone();
+        async move {
             let client = NostrClient::setup_and_connect()
                 .await
                 .expect("Failed to setup client");
 
+            // ตรวจสอบว่า npub_value มีค่าเป็น Some หรือไม่
+            let npub: String = value.unwrap_or_else(|| String::new());
+            //
+
+             let demo_pubkey = FromBech32::from_bech32("npub12evy8v5zqhtx3r9n553wpxmk8ah279vlmwx228vnyjjzsnlr0sysvm7nzw")
+                 .expect("TODO: panic message");
+
+            // สร้าง filter สำหรับดึงข้อมูล event ที่เป็นประเภท LongFormTextNote
+            let mut filter = Filter::new()
+                .author(demo_pubkey)
+                .kind(Kind::LongFormTextNote);
 
             // ตรวจสอบว่า SessionStorage มีค่า key ที่ขึ้นต้นด้วย story-teller_
             let key_exists = SessionStorage::has_key_starting_with("story-teller_");
 
             let mut authors: Vec<PublicKey> = Vec::new();
 
-            if key_exists {
-                // ถ้ามี ให้ดึงข้อมูลจาก key story-teller_follow_1
+            // ตรวจสอบว่าค่า npub ไม่เป็นค่าว่าง
+            if !npub.is_empty() {
+                // กำหนด filter ด้วย npub
+                filter = filter.authors(vec![PublicKey::from_bech32(&npub).expect("Invalid npub format")]);
+            } else if key_exists {
+                // ถ้าค่า npub เป็นค่าว่าง ให้ดึงข้อมูลจาก SessionStorage
                 if let Some(json_str) = SessionStorage::get("story-teller_follow_1") {
                     // แปลง JSON string เป็น FollowList object
                     let follow_list: FollowList = serde_json::from_str(&json_str)
@@ -190,12 +208,9 @@ pub fn Story() -> Element {
                 }
             }
 
-            // สร้าง filter สำหรับดึงข้อมูล event ที่เป็นประเภท LongFormTextNote
-            let mut filter = Filter::new().kind(Kind::LongFormTextNote);
-
             // ถ้ามีค่า authors ให้เพิ่มลงใน filter
             if !authors.is_empty() {
-                //info!("Now query follows list...");
+                info!("Now query follows list...");
                 filter = filter.authors(authors);
             }
 
@@ -240,7 +255,7 @@ pub fn Story() -> Element {
                                 serde_json::from_str::<Metadata>(
                                     &*metadata_event.content,
                                 )
-                                .unwrap();
+                                    .unwrap();
 
                             if !metadata_event.is_expired()
                                 && ts.lt(&metadata_event.created_at.as_u64())
@@ -262,9 +277,9 @@ pub fn Story() -> Element {
                         if !result {
                             let pk = event.pubkey.to_hex();
                             let image_proxy = format!(
-                            "https://media.nostr.band/thumbs/{}/{}-picture-64",
-                            &pk[60..],
-                            pk);
+                                "https://media.nostr.band/thumbs/{}/{}-picture-64",
+                                &pk[60..],
+                                pk);
                             let result = check_image(&image_proxy).await;
                             if result {
                                 author_image = Some(image_proxy);
@@ -282,7 +297,7 @@ pub fn Story() -> Element {
                         author_name.clone(),
                         author_image.clone(),
                     )
-                    .await;
+                        .await;
                     stories.push(story);
                     story_data_signal.set(stories.clone());
                 }
@@ -294,30 +309,110 @@ pub fn Story() -> Element {
                 info!("Failed to retrieve events");
             }
         }
+        }
     });
+
+    // Signal สำหรับหน้าเซ็ตปัจจุบัน
+    let mut current_page: Signal<usize> = use_signal(|| 0);
+
+    // จำนวน Card ต่อหนึ่งหน้าเซ็ต
+    const CARDS_PER_PAGE: usize = 20;
+    // รายการข้อมูลทั้งหมด
+    let stories = story_data_signal.read();
+    // จำนวนทั้งหมดของหน้าเซ็ต
+    let total_pages = (stories.len() + CARDS_PER_PAGE - 1) / CARDS_PER_PAGE;
+
+    // ฟังก์ชันแบ่ง Card เป็นเซ็ต ๆ
+    let displayed_stories: Vec<StoryData> = stories
+        .iter()
+        .skip(current_page.with(|p| *p) * CARDS_PER_PAGE)
+        .take(CARDS_PER_PAGE)
+        .cloned()
+        .collect();
 
     rsx! {
         style { {STYLE} }
-        div { class: "note-container",
 
-            // ถ้าข้อมูลใน story_data_signal ยังว่างอยู่ ให้แสดง EllipsisLoading
-            if story_data_signal.read().is_empty() {
-                EllipsisLoading {}
-            } else {
-                // ถ้ามีข้อมูลแล้ว ให้วนซ้ำแสดงผลแต่ละ story โดยใช้ StoryCard component
-                for story in story_data_signal.iter() {
-                    StoryCard {
-                        note_id: Nip19Tool::id_encode(story.note_id.clone().unwrap_or_default()),
-                        image: story.image.clone().unwrap_or_else(|| _IMG.to_string()),
-                        title: story.title.clone().unwrap_or_default(),
-                        summary: story.summary.clone().unwrap_or_default(),
-                        article: story.article.clone().unwrap_or_default(),
-                        published_at: story.published_at.clone().unwrap_or_default(),
-                        author_name:story.author_name.clone().unwrap_or("Unknown Author".to_string()),
-                        author_image: story.author_image.clone().unwrap_or_default(),
+        // ถ้าข้อมูลใน story_data_signal ยังว่างอยู่ ให้แสดง EllipsisLoading
+        if story_data_signal.read().is_empty() {
+            EllipsisLoading {}
+        } else {
+
+            div { class: "displayed-box",
+                div {
+                    class: "note-container",
+                    //style: "background-color: red;",
+
+                    // ถ้ามีข้อมูลแล้ว ให้วนซ้ำแสดงผลแต่ละ story โดยใช้ StoryCard component
+                    for story in displayed_stories {
+                        StoryCard {
+                            note_id: Nip19Tool::id_encode(story.note_id.clone().unwrap_or_default()),
+                            image: story.image.clone().unwrap_or_else(|| _IMG.to_string()),
+                            title: story.title.clone().unwrap_or_default(),
+                            summary: story.summary.clone().unwrap_or_default(),
+                            article: story.article.clone().unwrap_or_default(),
+                            published_at: story.published_at.clone().unwrap_or_default(),
+                            npub: story.npub.clone().unwrap_or_default(),
+                            author_name: story.author_name.clone().unwrap_or("Unknown Author".to_string()),
+                            author_image: story.author_image.clone().unwrap_or_default(),
+                        }
+                    }
+                }
+
+                div { class: "foot-pt",
+
+                    section {
+                        div { class: "btn-pagination",
+
+                            ul {
+                                // วนลูปเพื่อสร้างปุ่มสำหรับหน้าแรกถึงหน้าที่สาม
+                                for i in 0..total_pages.min(3) {
+                                    li {
+                                        class: "page-item",
+                                        // กำหนดการคลิกเพื่อเปลี่ยนหน้า
+                                        label { onclick: move |_| current_page.set(i), "{i + 1}" }
+                                    }
+                                }
+
+                                // ตรวจสอบว่าจำนวนหน้ามากกว่าสามหน้า
+                                if total_pages > 3 {
+                                    li {
+                                        class: "page-item ellipsis",
+                                        "..." // แสดงเครื่องหมายการข้ามหน้า
+                                    }
+                                    li {
+                                        class: "page-item",
+                                        // กำหนดการคลิกไปยังหน้าสุดท้าย
+                                        label { onclick: move |_| current_page.set(total_pages - 1), "{total_pages}" }
+                                    }
+                                }
+
+                                // เพิ่มปุ่ม "เซ็ตก่อนหน้า" ถ้าไม่อยู่ที่หน้าแรก
+                                if current_page() > 0 {
+                                    li {
+                                        class: "page-item previous",
+                                        // กำหนดการคลิกเพื่อไปหน้าก่อนหน้า
+                                        label { onclick: move |_| current_page.set(current_page - 1), "Previous" }
+                                    }
+                                }
+
+                                // ตรวจสอบว่าไม่อยู่ที่หน้าสุดท้าย
+                                if current_page() < total_pages - 1 {
+                                    li {
+                                        class: "page-item next",
+                                        // กำหนดการคลิกเพื่อไปหน้าถัดไป
+                                        label { onclick: move |_| current_page.set(current_page + 1), "Next" }
+                                    }
+                                }
+                            }
+
+
+                        }
                     }
                 }
             }
+
         }
     }
+
 }

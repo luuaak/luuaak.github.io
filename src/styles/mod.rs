@@ -15,8 +15,18 @@ pub mod error_style;
 pub mod auth_card_style;
 
 pub mod account_card_style;
+
 pub mod ellipsis_loading_style;
+
 pub mod article_style;
+
 pub mod article_author_style;
+
 pub mod article_layout_style;
+
+pub mod profile_style;
+
+pub mod new_story_style;
+
+pub mod markdown_style;
 

@@ -28,6 +28,7 @@ pub struct StoryCardProps {
     pub(crate) summary: String,
     pub(crate) article: String,
     pub(crate) published_at: String,
+    pub(crate) npub: String,
     pub(crate) author_name: String,
     pub(crate) author_image: String,
 }

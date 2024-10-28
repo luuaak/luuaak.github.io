@@ -3,22 +3,25 @@
 use dioxus::prelude::*;
 use dioxus_logger::tracing::info;
 use crate::styles::article_author_style::STYLE;
+use crate::pages::router::Route;
 
 const _IMG: manganis::ImageAsset = manganis::mg!(image("./src/assets/img_4.jpg"));
 const _COMMENT: &str = manganis::mg!(file("src/assets/comment.svg"));
 const _SHARE: &str = manganis::mg!(file("src/assets/Share.svg"));
 const _MARKING: &str = manganis::mg!(file("src/assets/marking.svg"));
-
 const _FOLLOW: &str = manganis::mg!(file("src/assets/plus.svg"));
 
 #[derive(PartialEq, Props, Clone)]
 pub struct AuthorInfoProps {
+    npub: String,
     author_name: String,
-    author_image: String
+    author_image: String,
 }
 
 #[component]
 pub fn ArticleAuthor(props: AuthorInfoProps) -> Element {
+    let navigator: Navigator = use_navigator();
+    let npub = props.npub.clone();
 
     let handle_share = move |_| {
         info!("Share clicked!");
@@ -32,9 +35,19 @@ pub fn ArticleAuthor(props: AuthorInfoProps) -> Element {
         info!("Comment clicked!");
     };
 
+    let handle_open_profile = move |_| {
+        info!("Open profile clicked!");
+
+        navigator.push(
+            Route::ProfilePage {
+                npub: npub.clone(),
+            },
+        );
+
+    };
 
     rsx! {
-        style { {STYLE} }
+        style { "{STYLE}" }
         div { class: "article-author-box",
 
             div { class: "field-button-pt",
@@ -62,14 +75,20 @@ pub fn ArticleAuthor(props: AuthorInfoProps) -> Element {
                 }
             }
 
-
-            // Article Author Profile Card
-             div { class: "author-info",
+            div { class: "author-info",
                 div { class: "article-author-bar",
                     div { id: "article-author",
-                        img { class: "article-profile-image", src: "{props.author_image}", alt: "Profile image" }
+                        img {
+                            class: "article-profile-image",
+                            src: "{props.author_image}",
+                            alt: "Profile image",
+                            onclick: handle_open_profile.clone(),
+                        }
                         div { class: "article-author-details",
-                            h4 { class: "article-author-name", "{props.author_name}" }
+                            h4 { class: "article-author-name",
+                                onclick: handle_open_profile,
+                                "{props.author_name}"
+                            }
                             button { class: "article-button-follow",
                                 r#type: "button",
                                 img { src: "{_FOLLOW}", alt: "Follow Icon" }
@@ -77,17 +96,11 @@ pub fn ArticleAuthor(props: AuthorInfoProps) -> Element {
                             }
                         }
                     }
-                    p { class: "article-count","32 Note" }
+                    p { class: "article-count", "32 Note" }
                 }
             }
 
-
-            // Tags
-            div { class: "tags-info",
-
-            }
-
+            div { class: "tags-info" }
         }
     }
 }
-
