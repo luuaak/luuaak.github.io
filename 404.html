@@ -24,7 +24,7 @@
     } else {
       // Default to a fallback route or handle unknown paths
       console.warn("Unknown route:", path);
-      href = baseUrl; // Redirect to base if needed
+      href = "/error";
     }
 
     // Set the window location to the resolved href
