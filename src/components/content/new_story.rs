@@ -66,91 +66,101 @@ pub fn NewStory() -> Element {
                     .expect("Failed to setup client");
 
 
-                // สร้าง SecretKey จากคีย์ Bech32 ที่คุณให้มา
-                let secret_key = SecretKey::from_bech32("nsec1htrkd6wqtj2x0g02detk7ud3w0mzshxz3erkkj7jgu8rlg3hml0sejqzwf")
-                    .expect("Invalid Secret Key");
-
-                // สร้าง Keys จาก SecretKey
-                let my_keys = Keys::new(secret_key);
-
-                // สร้าง PublicKey
-                let pubkey = PublicKey::from_str("565843b28205d6688cb3a522e09b763f6eaf159fdb8ca51d9324a4284fe37c09").unwrap();
-                let created_at = Timestamp::now();
-                let kind = Kind::LongFormTextNote;
-
-                // สร้าง Tags ที่ต้องการใช้
-                let tags = vec![
-                    Tag::title(input_title.unwrap()), // สร้าง tag title
-                    Tag::description(input_summary.unwrap()), // สร้าง tag description
-                    Tag::image(
-                        UncheckedUrl::new(input_image_url.unwrap()),
-                        None,
-                    ),
-                    Tag::alt("This is a short summary."), // สร้าง tag summary
-                ];
-
-
-                // สร้าง UnsignedEvent
-                let unsigned_event = UnsignedEvent {
-                    id: None,
-                    pubkey,
-                    created_at,
-                    kind,
-                    tags,
-                    content,
-                };
-
-                // เซ็น Event
-                let signed_event = unsigned_event.sign(&my_keys).expect("Failed to sign event");
-
-                info!("Signed Event: {:?}", signed_event);
-
-                if let Some(win) = window() {
-                    win.location().reload().expect("Failed to reload");
-                }
-
-                client.send_event(signed_event).await
-                    .expect("TODO: panic message");
-
-
-                // match Nip07Signer::new() {
-                //     Ok(signer) => {
-                //         let pubkey_str = signer.get_public_key().await.unwrap();
-                //         let pubkey = PublicKey::from_str(&pubkey_str.to_hex()).unwrap();
+                // // สร้าง SecretKey จากคีย์ Bech32 ที่คุณให้มา
+                // let secret_key = SecretKey::from_bech32("nsec1htrkd6wqtj2x0g02detk7ud3w0mzshxz3erkkj7jgu8rlg3hml0sejqzwf")
+                //     .expect("Invalid Secret Key");
                 //
-                //         let created_at = Timestamp::now(); // กำหนดเวลา Unix time ปัจจุบัน
-                //         let kind = Kind::LongFormTextNote;
-                //         let tags = vec![
+                // // สร้าง Keys จาก SecretKey
+                // let my_keys = Keys::new(secret_key);
                 //
-                //         ];
-                //         // nsec1htrkd6wqtj2x0g02detk7ud3w0mzshxz3erkkj7jgu8rlg3hml0sejqzwf
+                // // สร้าง PublicKey
+                // let pubkey = PublicKey::from_str("565843b28205d6688cb3a522e09b763f6eaf159fdb8ca51d9324a4284fe37c09").unwrap();
+                // let created_at = Timestamp::now();
+                // let kind = Kind::LongFormTextNote;
                 //
-                //         let unsigned_event = UnsignedEvent {
-                //             id: None, // `id` จะถูกสร้างตอนที่เซ็น event
-                //             pubkey,
-                //             created_at,
-                //             kind,
-                //             tags,
-                //             content: content.clone(),
-                //         };
+                // // สร้าง Tags ที่ต้องการใช้
+                // let tags = vec![
+                //     Tag::title(input_title.unwrap()), // สร้าง tag title
+                //     Tag::description(input_summary.unwrap()), // สร้าง tag description
+                //     Tag::image(
+                //         UncheckedUrl::new(input_image_url.unwrap()),
+                //         None,
+                //     ),
+                //     Tag::alt("This is a short summary."), // สร้าง tag summary
+                // ];
                 //
-                //         info!("Unsigned Event: {:?}", unsigned_event);
                 //
-                //         match signer.sign_event(unsigned_event).await {
-                //             Ok(signed_event) => {
-                //                 info!("Event signed successfully: {:?}", signed_event);
+                // // สร้าง UnsignedEvent
+                // let unsigned_event = UnsignedEvent {
+                //     id: None,
+                //     pubkey,
+                //     created_at,
+                //     kind,
+                //     tags,
+                //     content,
+                // };
                 //
-                //                 client.send_event(signed_event).await
-                //                     .expect("TODO: panic message");
+                // // เซ็น Event
+                // let signed_event = unsigned_event.sign(&my_keys).expect("Failed to sign event");
                 //
-                //                 // รีเซ็ตค่า submit_trigger กลับเป็น false
-                //                 submit_trigger.set(false);
-                //             }
-                //             Err(e) => error!("Failed to sign event: {:?}", e),
-                //         }
-                //     }
-                //     Err(e) => error!("Error initializing Nip07Signer: {:?}", e),
+                // info!("Signed Event: {:?}", signed_event);
+                //
+                // if let Some(win) = window() {
+                //     win.location().reload().expect("Failed to reload");
                 // }
+                //
+                // client.send_event(signed_event).await
+                //     .expect("TODO: panic message");
+
+
+
+                match Nip07Signer::new() {
+                    Ok(signer) => {
+                        let pubkey_str = signer.get_public_key().await.unwrap();
+                        let pubkey = PublicKey::from_str(&pubkey_str.to_hex()).unwrap();
+
+                        let created_at = Timestamp::now(); // กำหนดเวลา Unix time ปัจจุบัน
+                        let kind = Kind::LongFormTextNote;
+                        let tags = vec![
+                            Tag::title(input_title.unwrap()), // สร้าง tag title
+                            Tag::description(input_summary.unwrap()), // สร้าง tag description
+                            Tag::image(
+                                UncheckedUrl::new(input_image_url.unwrap()),
+                                None,
+                            ),
+                            Tag::alt("This is a short summary."),
+                        ];
+                        // nsec1htrkd6wqtj2x0g02detk7ud3w0mzshxz3erkkj7jgu8rlg3hml0sejqzwf
+
+                        let unsigned_event = UnsignedEvent {
+                            id: None, // `id` จะถูกสร้างตอนที่เซ็น event
+                            pubkey,
+                            created_at,
+                            kind,
+                            tags,
+                            content: content.clone(),
+                        };
+
+                        info!("Unsigned Event: {:?}", unsigned_event);
+
+                        match signer.sign_event(unsigned_event).await {
+                            Ok(signed_event) => {
+                                info!("Event signed successfully: {:?}", signed_event);
+
+                                client.send_event(signed_event).await
+                                    .expect("TODO: panic message");
+
+                                // รีเซ็ตค่า submit_trigger กลับเป็น false
+                                submit_trigger.set(false);
+                                if let Some(win) = window() {
+                                    win.location().reload().expect("Failed to reload");
+                                }
+                            }
+                            Err(e) => error!("Failed to sign event: {:?}", e)
+                        }
+                    }
+                    Err(e) => error!("Error initializing Nip07Signer: {:?}", e),
+                }
 
 
 

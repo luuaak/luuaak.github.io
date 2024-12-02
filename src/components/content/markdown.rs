@@ -6,7 +6,6 @@ use regex::Regex;
 use crate::styles::markdown_style::STYLE;
 use pulldown_cmark::{html, Options, Parser, Event, Tag, BlockQuoteKind, TagEnd};
 
-
 /*
 pub fn markdown_to_html(markdown_input: &str) -> String {
     let options = Options::all();
@@ -32,7 +31,6 @@ pub fn markdown_to_html(markdown_input: &str) -> String {
 
     html_output
 */
-
 
 pub fn markdown_to_html(markdown_input: &str) -> String {
     let options = Options::all();

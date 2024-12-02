@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+  <head>
+    <title></title>
+  </head>
+  <body></body>
+  <script>
+    // Get the current path from the browser
+    const path = window.location.pathname;
+
+    // Route handling logic
+    if (path.startsWith("/profile/")) {
+      // Extract the dynamic npub value
+      const npub = path.split("/profile/")[1];
+
+      // Set the href for the profile route
+      href = "/profile/${npub}";
+    } else if (path.startsWith("/story/id/")) {
+      // Extract the dynamic event_id value
+      const eventId = path.split("/story/id/")[1];
+
+      // Set the href for the story route
+      href = "/story/id/${eventId}";
+    } else {
+      // Default to a fallback route or handle unknown paths
+      console.warn("Unknown route:", path);
+      href = baseUrl; // Redirect to base if needed
+    }
+
+    // Set the window location to the resolved href
+    if (href) {
+      window.location.href = href;
+    }
+  </script>
+</html>

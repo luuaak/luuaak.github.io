@@ -173,15 +173,9 @@ pub fn Story(npub_value: Option<String>) -> Element {
 
             // ตรวจสอบว่า npub_value มีค่าเป็น Some หรือไม่
             let npub: String = value.unwrap_or_else(|| String::new());
-            //
-
-             let demo_pubkey = FromBech32::from_bech32("npub12evy8v5zqhtx3r9n553wpxmk8ah279vlmwx228vnyjjzsnlr0sysvm7nzw")
-                 .expect("TODO: panic message");
 
             // สร้าง filter สำหรับดึงข้อมูล event ที่เป็นประเภท LongFormTextNote
-            let mut filter = Filter::new()
-                .author(demo_pubkey)
-                .kind(Kind::LongFormTextNote);
+            let mut filter = Filter::new().kind(Kind::LongFormTextNote);
 
             // ตรวจสอบว่า SessionStorage มีค่า key ที่ขึ้นต้นด้วย story-teller_
             let key_exists = SessionStorage::has_key_starting_with("story-teller_");
