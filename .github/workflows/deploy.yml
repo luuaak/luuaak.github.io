@@ -25,7 +25,7 @@ jobs:
           override: true
 
       - name: Install Dioxus CLI
-        run: cargo install dioxus-cli
+        run: cargo install dioxus-cli; cargo install -f wasm-bindgen-cli --version 0.2.95
 
       - name: Install dependencies
         run: npm i
